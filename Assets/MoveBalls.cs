@@ -22,11 +22,12 @@ public class MoveBalls : MonoBehaviour {
 		{
 			if(ball.GetComponent<BallScript>().canRotate)
 			{
-				Vector3 up = this.transform.up;
-				float torque = playerController.torque;
-				Rigidbody body = ball.rigidbody;
+				float torque = playerController.torque/2;
 				
-				ball.rigidbody.AddTorque(StickyBall.transform.up*playerController.torque);
+				//Rigidbody body = ball.rigidbody;
+				
+				//ball.rigidbody.AddTorque(StickyBall.transform.up*playerController.torque);
+				ball.transform.RotateAround(StickyBall.transform.position,Vector3.up,torque*Time.fixedDeltaTime);
 			}
 			
 		}

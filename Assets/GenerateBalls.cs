@@ -4,12 +4,13 @@ using System.Collections.Generic;
 
 public class GenerateBalls : MonoBehaviour {
 	
+	public GameObject GameManager;
+	GameManager gameManagerScript;
 	
 	public GameObject TheStickyBall;
 	public GameObject Ball;
-	public float ballsPerSecond;
-	public int movementSpeed;
-	public int startDistance; // how far away should we generate the balls?
+	public int startDistance; // how far away should we generate the balls? // accessed by camera
+	
 	
 	private float currentTime;
 	private float lastTime;
@@ -30,8 +31,10 @@ public class GenerateBalls : MonoBehaviour {
 	void Start () {
 	
 		currentTime = 0;
+		startDistance = 5;
 		ballList = new List<GameObject>();
-		waitTime = 1/ballsPerSecond; // the time we should wait before generating another ball.
+		gameManagerScript = GameManager.GetComponent<GameManager>();
+		waitTime = 1/(float)gameManagerScript.ballsPerSecond; // the time we should wait before generating another ball.
 	}
 	
 	// Update is called once per frame
@@ -61,14 +64,30 @@ public class GenerateBalls : MonoBehaviour {
 		if(currentTime - lastTime > waitTime) // if the time past since generating the last ball is > the time we need to wait
 		{
 			// make another ball
-			GameObject ball = (GameObject)Instantiate(Ball, transform.position + offset, Ball.transform.rotation) as GameObject;
-			
+			GameObject ball = (GameObject)Instantiate(Ball, TheStickyBall.transform.position + offset, Ball.transform.rotation) as GameObject;
+			//adjust the size of the ball
+			float scaleFactor = gameManagerScript.planetScale* getRandomValue();
+			ball.transform.localScale = new Vector3(scaleFactor,scaleFactor,scaleFactor);
 			lastTime = currentTime; // set the lastTime = currentTime;
-			Vector3 movementDirection = TheStickyBall.transform.position - ball.transform.position;
-			ball.rigidbody.AddForce(movementSpeed*movementDirection);
+			Vector3 movementDirection = TheStickyBall.transform.position - ball.transform.position;// set the movement direction
+			ball.transform.forward = -movementDirection; // set the direciton the ball is facing, for the particle effect
+			ball.rigidbody.AddForce(gameManagerScript.ballMovementSpeed*movementDirection); // start moving
 			ballList.Add(ball);
 		}
 		
+	}
+	
+	// get a random value between certain values
+	float getRandomValue()
+	{
+		float rand = Random.value;
+		
+		while(rand < .75)
+		{
+			rand = Random.value;
+		}
+		//Debug.Log("rand: " + rand);
+		return rand;
 	}
 	
 	void deleteBalls()

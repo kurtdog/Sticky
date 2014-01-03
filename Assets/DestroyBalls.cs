@@ -4,11 +4,18 @@ using System.Collections.Generic;
 
 public class DestroyBalls : MonoBehaviour {
 	
+	
+	public GameObject GameManager;
+	public GameObject TheStickyBall;
 	GenerateBalls generateBallsScript;
+	GameManager gameManagerScript;
+	PlayerController playerController;
 	// Use this for initialization
 	void Start () {
 	
 		generateBallsScript = this.GetComponent<GenerateBalls>();
+		gameManagerScript = GameManager.GetComponent<GameManager>();
+		//playerController = TheStickyBall.GetComponent<PlayerController>();
 	}
 	
 	// Update is called once per frame
@@ -58,13 +65,13 @@ public class DestroyBalls : MonoBehaviour {
 				}
 				
 				// We might have to do this for sameColorList as well
-				/*
+				
 				if(ballToUpdate.GetComponent<BallScript>().sameColorList.Contains(ballToDestroy))
 				{
 					ballToUpdate.GetComponent<BallScript>().sameColorList.Remove(ballToDestroy);
 				}
-				*/
 			}
+			
 		}
 		
 		// delete the balls
@@ -72,6 +79,11 @@ public class DestroyBalls : MonoBehaviour {
 		for(int i = 0 ; i < toDestroy.Count; i++) // increment through to Destroy
 		{
 			Object.Destroy(deleteList[i]);	//delete from deleteList
+			//update the points for the GameManager
+			gameManagerScript.points += gameManagerScript.pointsPerBall;
+			float scaleFactor = (float)0.01; // scale everything by .01
+			gameManagerScript.planetScale += scaleFactor;
+			TheStickyBall.transform.localScale = TheStickyBall.transform.localScale + new Vector3(scaleFactor,scaleFactor,scaleFactor);
 		}
 		
 		

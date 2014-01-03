@@ -5,16 +5,22 @@ using System.Collections.Generic;
 public class BallScript : MonoBehaviour {
 	
 	
-	
+	public GameObject TheStickyBall;
+	public GameObject CameraObject;
+	public GameObject GameManager;
 	private int m_id; // the id of this ball
+	public float distanceFromCenter;
 	public bool isDead;
 	public bool canRotate;
 	public Color m_color;
 	public List<GameObject> touchingList; // I could prolly just have this be a list of GameObjects, then i don't have to deal with ID's and shit
-	private List<GameObject> sameColorList; // list of all the balls I'm touching that have the same color as me
+	public List<GameObject> sameColorList; // list of all the balls I'm touching that have the same color as me
 	private int lastTouchingSize; // keep track of hte touching list size, we only want to check if we need to delte, if we're now touching more balls
-	private List<Color> possibleColors;
+	
 	BallScript ballScript;
+	GameManager gameManagerScript;
+	
+	
 	
 	public int id
 	{
@@ -34,13 +40,18 @@ public class BallScript : MonoBehaviour {
 		touchingList = new List<GameObject>();
 		sameColorList = new List<GameObject>();
 		lastTouchingSize = 0;
-		possibleColors = new List<Color>();// list of possible colors for this ball
-		possibleColors.Add(Color.red);
-		possibleColors.Add(Color.blue);
-		possibleColors.Add(Color.green);
-	
-		m_color = possibleColors[Random.Range(0,possibleColors.Count)]; // pick one at random
-		renderer.material.color = m_color;
+		distanceFromCenter = 0;
+		
+		gameManagerScript = GameManager.GetComponent<GameManager>();
+		
+		if(gameManagerScript.possibleColors.Count > 0)
+		{
+			m_color = gameManagerScript.getPossibleColor(); // pick one of the possible colors at random
+			renderer.material.color = m_color;
+		}
+		else{
+			renderer.material.color = Color.white;
+		}
 		
 		
 		isDead = false;
@@ -59,7 +70,7 @@ public class BallScript : MonoBehaviour {
 		}
 	}
 	
-	void OnCollisionEnter(Collision col) // on colliding with an object
+	void OnTriggerEnter(Collider col) // on colliding with an object
 	{
 
 		//Debug.Log("collision");
@@ -71,12 +82,21 @@ public class BallScript : MonoBehaviour {
 			rigidbody.angularVelocity = new Vector3(0,0,0);
 			col.gameObject.rigidbody.velocity = new Vector3(0,0,0);
 			col.gameObject.rigidbody.angularVelocity = new Vector3(0,0,0);
-			canRotate = true;
+			col.gameObject.GetComponent<BallScript>().canRotate = true;
 			
 			
 			touchingList.Add(col.gameObject); // we're touching htis ball
 			col.gameObject.GetComponent<BallScript>().touchingList.Add(this.gameObject); // and it's touching me
 		}
+		
+		//calculate the distance from the sticky ball, if it's a new max distance, update the maxdistance on the camera script
+		Vector3 distance = this.transform.position - TheStickyBall.transform.position;
+		distanceFromCenter = distance.magnitude;
+		if(distanceFromCenter > CameraObject.GetComponent<CameraScript>().maxDistance)
+		{
+			CameraObject.GetComponent<CameraScript>().maxDistance = distanceFromCenter;
+		}
+			
 	}
 	
 
@@ -86,17 +106,19 @@ public class BallScript : MonoBehaviour {
 		
 		foreach(GameObject ball in touchingList)// for every ball in my touching list, 	
 		{
-			ballScript = ball.GetComponent<BallScript>();
-
-			if( ballScript.color == m_color)//if this ball has the same color as me
+			if(ball != null)
 			{
-				if(!sameColorList.Contains(ball)) // add it to the list, as long as it's not already there
+				ballScript = ball.GetComponent<BallScript>();
+	
+				if( ballScript.color == m_color)//if this ball has the same color as me
 				{
-					sameColorList.Add(ball);	
+					if(!sameColorList.Contains(ball)) // add it to the list, as long as it's not already there
+					{
+						sameColorList.Add(ball);	
+					}
+					
 				}
-				
 			}
-			
 		}	
 		
 		
